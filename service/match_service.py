@@ -2,53 +2,60 @@ from abc import ABC, abstractmethod
 
 
 class MatchManager:
+
     def __init__(self):
         self.match = None
-        self.active = True
-        self.last_player = None
 
     def set_match(self, match):
         self.match = match
+        self.post_init()    # initialise whatever is specific to the match type
 
     def end_match(self):
-        self.active = False
+        self.match.active = False
+
+    @abstractmethod
+    def post_init(self):
+        """Primitive operation. You HAVE TO override me, I'm a placeholder."""
+        pass
 
 
 class MatchVisitTemplate(ABC):
 
-    def process_visit(self, player, visit):
-        """Skeleton of operations to perform. DON'T override me.
+    def process_visit(self, player_index, visit):
+        """returns result (0 meaning game goes on, >0 meaning a dart finished the game), response (info messages)
+        Skeleton of operations to perform. DON'T override me.
 
         The Template Method defines a skeleton of an algorithm in an operation,
         and defers some steps to subclasses.
         """
 
-        status, message = self.validate_visit(player, visit)
+        status, message = self.validate_visit(player_index, visit)
         if status is False:
-            return message
+            return -1, message
 
-        self.check_winning_condition(visit)
+        # result stores which, if any, of the darts closed out the game
+        result = self.check_winning_condition(player_index, visit)
 
-        self.record_statistics()
+        self.record_statistics(player_index, visit, result)
 
-        return self.format_summary()
+        return result, self.format_summary(player_index)
 
     @abstractmethod
-    def validate_visit(self, player, visit):
+    def validate_visit(self, player_index, visit):
         """Primitive operation. You HAVE TO override me, I'm a placeholder."""
         pass
 
     @abstractmethod
-    def check_winning_condition(self):
+    def check_winning_condition(self, player_index, visit):
         """Primitive operation. You HAVE TO override me, I'm a placeholder."""
         pass
 
     @abstractmethod
-    def record_statistics(self):
+    def record_statistics(self, player_index, visit, result):
         """Primitive operation. You HAVE TO override me, I'm a placeholder."""
         pass
 
     @abstractmethod
-    def format_summary(self):
+    def format_summary(self, player_index):
         """Primitive operation. You HAVE TO override me, I'm a placeholder."""
         pass

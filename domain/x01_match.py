@@ -1,49 +1,98 @@
 from service.match_service import MatchVisitTemplate
 from service.match_service import MatchManager
+from datatype.enums import DartMultiplier
 
 
-def get_value_of(dart):
-    multiplier = 1
-    if dart[0] == 'D':
-        multiplier = 2
-    elif dart[0] == 'T':
-        multiplier = 3
-
-    dart_segment = dart[1:]
-    total = multiplier * int(dart_segment)
-
-    return total
+STARTING_TOTAL = 501
 
 
 class X01Match(MatchManager, MatchVisitTemplate):
 
     def __init__(self):
         super().__init__()
-        self.p1_total = self.p2_total = 501  # switch to a dictionary
+        self.scores = []  # list of scores remaining parallel to players
+        self.averages = []  # single-dart average (x 3 for 3-dart average)
+        self.first9 = []  # average for first 9 darts
 
-    def validate_visit(self, player, visit):
-        if self.last_player is player:
-            return False, "Player " + player + " is not in the correct sequence. Visit ignored."
+    # This has the potential to be buggy if the match is set first and players registered after
+    def post_init(self):
+        for i in range(0, len(self.match.players)):
+            self.scores.append(STARTING_TOTAL)  # Might want to parameterise the starting total
+            self.first9.append(None)
+            self.averages.append(None)
 
-        self.last_player = player
+    def validate_visit(self, player_index, visit):
+        if self.match.last_player_index is player_index:
+            return False, "Player " + str(player_index + 1) + " is not in the correct sequence. Visit ignored."
+
+        if not self.match.active:
+            return False, "Game has ended."
+
+        self.match.last_player_index = player_index
         return True, None
 
-    def check_winning_condition(self, visit):
-        # Loop through each dart to see if it wins the game
-        for dart in visit:
-            # switch this to something like a dictionary
-            if self.match.player1 is self.last_player:
-                self.p1_total -= get_value_of(dart)
+    def check_winning_condition(self, player_index, visit):
+        """returns 1, 2 or 3 for when a dart closes the game / leg (i.e. finishing double) or 0 if not closed out
+
+        :param player_index: position of player details in various lists
+        :param visit: a list of 3 Darts (each containing multiplier and segment)
+        :return: 0, 1, 2 or 3
+        """
+        i = 0
+        for dart in visit.darts:
+            i = i + 1
+            if dart.multiplier == DartMultiplier.DOUBLE and self.scores[player_index] - dart.get_score() == 0:
+                # game, shot!
+                self.scores[player_index] = 0
+                self.match.active = False
+                return i
             else:
-                self.p2_total -= get_value_of(dart)
-            print(dart)
+                self.scores[player_index] -= dart.get_score()
 
-    def record_statistics(self):
-        pass
+        return 0
 
-    def format_summary(self):
-        return "Last player was " + self.last_player + "; scores remaining, P1: "\
-               + str(self.p1_total) + ", P2: " + str(self.p2_total)
+    def record_statistics(self, player_index, visit, result):
+        """Store stats both for in-memory immediate use and on disk for later recall
+
+        :return:
+        """
+        if result is not 0:
+            visit.remove_trailing_darts(result)  # a double finished the game, so ignore any subsequent darts
+
+        self.match.visits[player_index].append(visit)
+
+        # Calculate first 9 if, and only if, this is the 3rd visit
+        if len(self.match.visits[player_index]) == 3:
+            self.first9[player_index] = (STARTING_TOTAL - self.scores[player_index]) / 3
+
+        # Calculate single-dart average taking account of a double being hit with dart 1 or 2 when checking out
+        num_darts_thrown = (len(self.match.visits[player_index]) - 1) * 3
+        num_darts_thrown += 3 if result is 0 else result
+
+        if result is not 0:
+            self.match.winning_num_darts = num_darts_thrown
+            self.match.winning_player_index = player_index
+
+        self.averages[player_index] = (STARTING_TOTAL - self.scores[player_index]) / num_darts_thrown
+
+    def format_summary(self, player_index):
+        # Include suggested checkout if remaining score can be checked out in 3 darts
+        if self.match.winning_player_index is not -1:
+            summary = self.match.players[self.match.winning_player_index] + " wins in "\
+                      + str(self.match.winning_num_darts) + " darts\nFinal Summary:\n"
+        else:
+            summary = "Last player was " + self.match.players[player_index] + "\nSummary:\n"
+
+        i = 0
+        for player in self.match.players:
+            summary = summary + player + ": " + str(self.scores[i])
+            if self.first9[i]:
+                summary += " [First 9 Avg: " + '{0:.2f}'.format(self.first9[i]) + "] "
+            if self.averages[i]:
+                summary += " [3-dart Avg: " + '{0:.2f}'.format(self.averages[i] * 3) + "] "
+            i = i + 1
+            summary += "\n"
+        return summary
 
 
 class X01MatchBuilder:
