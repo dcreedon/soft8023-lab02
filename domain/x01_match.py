@@ -75,13 +75,14 @@ class X01Match(MatchManager, MatchVisitTemplate):
 
         self.averages[player_index] = (STARTING_TOTAL - self.scores[player_index]) / num_darts_thrown
 
-    def format_summary(self, player_index):
+    def format_summary(self, player_index, visit):
         # Include suggested checkout if remaining score can be checked out in 3 darts
+        summary = "Last visit was by " + self.match.players[player_index] + " with " + visit.to_string() + "\n"
+
         if self.match.winning_player_index is not -1:
-            summary = self.match.players[self.match.winning_player_index] + " wins in "\
-                      + str(self.match.winning_num_darts) + " darts\nFinal Summary:\n"
-        else:
-            summary = "Last player was " + self.match.players[player_index] + "\nSummary:\n"
+            summary += self.match.players[self.match.winning_player_index] + " wins in "\
+                      + str(self.match.winning_num_darts) + " darts\nFinal "
+        summary += "Summary:\n"
 
         i = 0
         for player in self.match.players:

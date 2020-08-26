@@ -38,7 +38,7 @@ class MatchVisitTemplate(ABC):
 
         self.record_statistics(player_index, visit, result)
 
-        return result, self.format_summary(player_index)
+        return result, self.format_summary(player_index, visit)
 
     @abstractmethod
     def validate_visit(self, player_index, visit):
@@ -56,6 +56,6 @@ class MatchVisitTemplate(ABC):
         pass
 
     @abstractmethod
-    def format_summary(self, player_index):
+    def format_summary(self, player_index, visit):
         """Primitive operation. You HAVE TO override me, I'm a placeholder."""
         pass
