@@ -38,6 +38,8 @@ class MatchVisitTemplate(ABC):
 
         self.record_statistics(player_index, visit, result)
 
+        # Note: this violates the separation of concerns principle (we are mixing presentation logic in
+        # with service / business logic - we should refactor, especially if we move to a GUI front-end
         return result, self.format_summary(player_index, visit)
 
     @abstractmethod
