@@ -2,6 +2,17 @@ from service.match_service import MatchVisitTemplate
 from service.match_service import MatchManager
 from datatype.enums import DartMultiplier
 
+CHECKOUTS = {
+    170: "T20 T20 Bull",
+    167: "T20 T19 Bull",
+    164: "T20 T18 Bull",
+    161: "T20 T17 Bull",
+    160: "T20 T20 D20",
+
+    136: "T20 T20 D8",
+
+    36: "D18"
+}
 
 STARTING_TOTAL = 501
 
@@ -81,16 +92,17 @@ class X01Match(MatchManager, MatchVisitTemplate):
 
         if self.match.winning_player_index is not -1:
             summary += self.match.players[self.match.winning_player_index] + " wins in "\
-                      + str(self.match.winning_num_darts) + " darts\nFinal "
-        summary += "Summary:\n"
+                      + str(self.match.winning_num_darts) + " darts\n"
 
         i = 0
         for player in self.match.players:
-            summary = summary + player + ": " + str(self.scores[i])
+            summary = summary + player + ": " + str(self.scores[i]) + " Remaining"
+            if self.scores[i] in CHECKOUTS.keys():
+                summary += " (" + CHECKOUTS.get(self.scores[i]) + ")"
             if self.first9[i]:
-                summary += " [First 9 Avg: " + '{0:.2f}'.format(self.first9[i]) + "] "
+                summary += "\n - [First 9 Avg: " + '{0:.2f}'.format(self.first9[i]) + "] "
             if self.averages[i]:
-                summary += " [3-dart Avg: " + '{0:.2f}'.format(self.averages[i] * 3) + "] "
+                summary += "\n - [3-dart Avg: " + '{0:.2f}'.format(self.averages[i] * 3) + "] "
             i = i + 1
             summary += "\n"
         return summary
