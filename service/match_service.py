@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class MatchManager:
+class MatchManager(ABC):
 
     def __init__(self):
         self.match = None

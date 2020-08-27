@@ -17,7 +17,7 @@ class X01Match(MatchManager, MatchVisitTemplate):
     # This has the potential to be buggy if the match is set first and players registered after
     def post_init(self):
         for i in range(0, len(self.match.players)):
-            self.scores.append(STARTING_TOTAL)  # Might want to parameterise the starting total
+            self.scores.append(STARTING_TOTAL)  # Might want to parameterize the starting total
             self.first9.append(None)
             self.averages.append(None)
 
