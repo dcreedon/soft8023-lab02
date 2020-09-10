@@ -1,5 +1,5 @@
 import pattern.object_factory as object_factory
-import domain.x01_match as x01_match
+import app.gameimpl.x01_match as x01_match
 import domain.darts_match as darts_match
 from datatype.enums import DartMultiplier
 from domain import visit
