@@ -15,7 +15,7 @@ match = darts_match.DartsMatch()
 
 player1_index = match.register_player('Larkin')
 player2_index = match.register_player('Nikral')
-#match.set_starting_total(STARTING_TOTAL)
+
 x01.set_match(match)
 
 my_visit = visit.Visit([(DartMultiplier.SINGLE, 5), (DartMultiplier.SINGLE, 5), (DartMultiplier.SINGLE, 20)])
