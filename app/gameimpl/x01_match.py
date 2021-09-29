@@ -10,25 +10,27 @@ CHECKOUTS = {
     160: "T20 T20 D20",
 
     136: "T20 T20 D8",
+    106: "T20 14 D16",
 
     36: "D18"
 }
 
-STARTING_TOTAL = 501
+#STARTING_TOTAL = 501
 
 
 class X01Match(MatchManager, MatchVisitTemplate):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
         self.scores = []  # list of scores remaining parallel to players
         self.averages = []  # single-dart average (x 3 for 3-dart average)
         self.first9 = []  # average for first 9 darts
+        self.startingTotal = kwargs['starting_total']
 
     # This has the potential to be buggy if the match is set first and players registered after
     def post_init(self):
         for i in range(0, len(self.match.players)):
-            self.scores.append(STARTING_TOTAL)  # Might want to parameterize the starting total
+            self.scores.append(self.startingTotal)  # Might want to parameterize the starting total
             self.first9.append(None)
             self.averages.append(None)
 
@@ -74,7 +76,7 @@ class X01Match(MatchManager, MatchVisitTemplate):
 
         # Calculate first 9 if, and only if, this is the 3rd visit
         if len(self.match.visits[player_index]) == 3:
-            self.first9[player_index] = (STARTING_TOTAL - self.scores[player_index]) / 3
+            self.first9[player_index] = (self.startingTotal - self.scores[player_index]) / 3
 
         # Calculate single-dart average taking account of a double being hit with dart 1 or 2 when checking out
         num_darts_thrown = (len(self.match.visits[player_index]) - 1) * 3
@@ -84,7 +86,7 @@ class X01Match(MatchManager, MatchVisitTemplate):
             self.match.winning_num_darts = num_darts_thrown
             self.match.winning_player_index = player_index
 
-        self.averages[player_index] = (STARTING_TOTAL - self.scores[player_index]) / num_darts_thrown
+        self.averages[player_index] = (self.startingTotal - self.scores[player_index]) / num_darts_thrown
 
     def format_summary(self, player_index, visit):
         # Include suggested checkout if remaining score can be checked out in 3 darts
@@ -118,3 +120,6 @@ class X01MatchBuilder:
 
     def __call__(self):
         return X01Match()
+
+    def __call__(self, **kwargs):
+       return X01Match(**kwargs)

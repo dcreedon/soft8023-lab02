@@ -7,6 +7,7 @@ class DartsMatch:
         self.visits = []
         self.winning_num_darts = -1
         self.winning_player_index = -1
+        self.starting_total = -1
 
     def register_player(self, username):
         if username not in self.players:
@@ -16,3 +17,8 @@ class DartsMatch:
             return index
         else:
             return -1
+
+    def set_starting_total(self, startingtotal):
+        self.starting_total = startingtotal
+
+        return self.starting_total
